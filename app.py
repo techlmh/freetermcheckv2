@@ -259,7 +259,7 @@ def validate_free_semester_plan_bytes(file_bytes, filename):
     if fail_count == 0:
         results["summary"] = "모든 점검 항목을 완벽하게 통과하였습니다. 특이사항이 없습니다."
     else:
-        results["summary"] = f"총 {fail_count건의 보완 필요 사항(불일치/기준 미달)이 발견되었습니다. 상세 내용을 확인 후 수정이 필요합니다."
+        results["summary"] = f"총 {fail_count}건의 보완 필요 사항(불일치/기준 미달)이 발견되었습니다. 상세 내용을 확인 후 수정이 필요합니다."
         
     return results
 
