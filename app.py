@@ -271,11 +271,11 @@ st.markdown("교육청 표준 서식으로 작성된 자유학기 운영계획�
 st.sidebar.header("⚙️ 제어판")
 
 # Batch reset button using session state
-if 'file_uploader_key' not in st.sidebar:
-    st.sidebar.file_uploader_key = 0
+if 'file_uploader_key' not in st.session_state:
+    st.session_state.file_uploader_key = 0
 
 def reset_uploader():
-    st.sidebar.file_uploader_key += 1
+    st.session_state.file_uploader_key += 1
 
 st.sidebar.button("🔄 업로드 파일 일괄 초기화", on_click=reset_uploader)
 
@@ -283,7 +283,7 @@ uploaded_files = st.file_uploader(
     "자유학기 운영계획서 엑셀 파일들을 업로드하세요 (복수 선택 가능)",
     type=["xlsx"],
     accept_multiple_files=True,
-    key=f"file_uploader_{st.sidebar.file_uploader_key}"
+    key=f"file_uploader_{st.session_state.file_uploader_key}"
 )
 
 if uploaded_files:
