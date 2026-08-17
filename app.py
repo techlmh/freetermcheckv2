@@ -4,6 +4,7 @@ import pandas as pd
 import re
 import io
 import os
+from openpyxl.styles import Alignment
 
 st.set_page_config(
     page_title="중학교 자유학기 운영계획서 자동 검토 시스템",
@@ -263,6 +264,11 @@ def validate_free_semester_plan_bytes(file_bytes, filename):
         
     return results
 
+# --- Styling Functions ---
+def highlight_fail(row):
+    # Highlight row in light red if status is FAIL
+    return ['background-color: #ffcccc' if row['상태'] == '❌ FAIL' else '' for _ in row]
+
 # --- Streamlit UI ---
 st.title("📚 중학교 자유학기 운영계획서 자동 검토 웹앱")
 st.markdown("교육청 표준 서식으로 작성된 자유학기 운영계획서 엑셀 파일을 일괄 업로드하여 자동으로 검토하고 결과를 확인하는 시스템입니다.")
@@ -324,12 +330,39 @@ if uploaded_files:
                 df_checks['상태'] = df_checks['result'].apply(lambda x: '✅ PASS' if x == 'PASS' else '❌ FAIL')
                 df_display = df_checks[['상태', 'category', 'item', 'detail']]
                 df_display.columns = ['상태', '검토 영역', '점검 항목', '상세 내용']
-                st.dataframe(df_display, use_container_width=True)
+                
+                # Apply styling to dataframe
+                st.dataframe(df_display.style.apply(highlight_fail, axis=1), use_container_width=True)
                 
             # Write sheet for excel export
+            # Reorder columns for better excel view
             df_sheet = pd.DataFrame(res['checks'])
-            sheet_name = uploaded_file.name[:25].replace('[', '').replace(']', '').replace('*', '')
+            df_sheet = df_sheet[['result', 'category', 'item', 'detail']]
+            df_sheet.columns = ['점검결과', '검토영역', '점검항목', '상세내용']
+            
+            sheet_name = uploaded_file.name[:25].replace('[', '').replace(']', '').replace('*', '').replace(':', '').replace('/', '').replace('\\', '').replace('?', '')
             df_sheet.to_excel(writer, sheet_name=sheet_name, index=False)
+            
+            # Formatting the excel sheet
+            worksheet = writer.sheets[sheet_name]
+            for col in worksheet.columns:
+                max_length = 0
+                column = col[0].column_letter # Get the column name
+                for cell in col:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                
+                if column == 'D': # 상세내용 column
+                    adjusted_width = 50
+                    for cell in col:
+                        cell.alignment = Alignment(wrap_text=True, vertical='top')
+                else:
+                    adjusted_width = (max_length + 5)
+                
+                worksheet.column_dimensions[column].width = adjusted_width
             
     output_excel.seek(0)
     
